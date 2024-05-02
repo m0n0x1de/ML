@@ -5,6 +5,7 @@ class Chart{
       this.axesLabels=options.axesLabels;
       this.styles=options.styles;
       this.icon=options.icon;
+      this.bg=options.bg;
       this.onClick=onClick;
 
       this.canvas=document.createElement("canvas");
@@ -14,6 +15,7 @@ class Chart{
       container.appendChild(this.canvas);
 
       this.ctx=this.canvas.getContext("2d");
+      this.ctx.imageSmoothingEnabled=false;
 
       this.margin=options.size*0.11;
       this.transparency=options.transparency||1;
@@ -37,16 +39,16 @@ class Chart{
       this.defaultDataBounds=this.#getDataBounds();
 
       this.dynamicPoint=null;
-      this.nearestSample=null;
+      this.nearestSamples=null;
 
       this.#draw();
 
       this.#addEventListeners();
    }
 
-   showDynamicPoint(point,label,nearestSample){
+   showDynamicPoint(point,label,nearestSamples){
       this.dynamicPoint={point,label};
-      this.nearestSample=nearestSample;
+      this.nearestSamples=nearestSamples;
       this.#draw();
    }
 
@@ -236,6 +238,14 @@ class Chart{
       const {ctx,canvas}=this;
       ctx.clearRect(0,0,canvas.width,canvas.height);
 
+      const topLeft=math.remapPoint(
+         this.dataBounds,
+         this.pixelBounds,
+         [0,1]
+      );
+      const sz=(canvas.width-this.margin*2)
+      /this.dataTrans.scale**2;
+      ctx.drawImage(this.bg,...topLeft,sz,sz);
       ctx.globalAlpha=this.transparency;
       this.#drawSamples(this.samples);
       ctx.globalAlpha=1;
@@ -260,14 +270,18 @@ class Chart{
             point
          );
          graphics.drawPoint(ctx,pixelLoc,"rgba(255,255,255,0.7)",10000000);
-         ctx.beginPath();
-         ctx.moveTo(...pixelLoc);
-         ctx.lineTo(...math.remapPoint(
-            this.dataBounds,
-            this.pixelBounds,
-            this.nearestSample.point
-         ));
-         ctx.stroke();
+         ctx.strokeStyle="gray";
+         for(const sample of this.nearestSamples){
+            const point=math.remapPoint(
+               this.dataBounds,
+               this.pixelBounds,
+               sample.point
+            );         
+            ctx.beginPath();
+            ctx.moveTo(...pixelLoc);
+            ctx.lineTo(...point);
+            ctx.stroke();
+         }
          graphics.drawImage(ctx,
          this.styles[label].image,
          pixelLoc

@@ -10,13 +10,16 @@ function createRow(container, studentName, samples){
 
 
     for(let sample of samples){
-        const{id, label}=sample;
+        const{id, label,student_id,correct}=sample;
 
         const sampleContainer=document.createElement('div');
         sampleContainer.id="sample_"+id;
         sampleContainer.onclick=()=>handleClick(sample, false);
 
         sampleContainer.classList.add('sampleContainer');
+        if(correct){
+            sampleContainer.style.backgroundColor="lightgreen";
+        }
 
         const sampleLable=document.createElement('div');
         sampleLable.innerHTML=label;
